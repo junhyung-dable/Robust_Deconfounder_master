@@ -113,6 +113,7 @@ def setup_seed(seed):
     random.seed(seed)
                 
 def inner_bound(Gama_Auto, ips_adv, ips_hat):
+    # critical mistakes 
     upbound = torch.ones_like(ips_hat) + ( ips_hat-torch.ones_like(ips_hat) ) / Gama_Auto
     lowbound = torch.ones_like(ips_hat) + ( ips_hat-torch.ones_like(ips_hat) ) * Gama_Auto
     over_up_mask = torch.where(ips_adv>upbound, torch.ones_like(ips_hat), torch.zeros_like(ips_hat))
@@ -223,6 +224,7 @@ def train_and_eval(train_data, unif_train_data, val_data, test_data, device = 'c
                 weight1_optimizer.zero_grad()
                 weight2_optimizer.zero_grad()
                 imputation_optimizer.zero_grad()
+                
                 loss_l.backward()
                 # the same setting of AutoDebias, update the weight 1/2 when epo > 20 for stable training.
                 if epo > 20 :
@@ -300,11 +302,11 @@ def train_and_eval(train_data, unif_train_data, val_data, test_data, device = 'c
                 else:
                     # do not do adversal learning when epo < 20
                     weight1 = weight1_model(users_train, items_train,(y_train==1)*1)
-                    weight1 = torch.exp( torch.nn.ReLU()(weight1/args.auto_temperature) )
+                    weight1 = torch.exp(torch.nn.ReLU()(weight1/args.auto_temperature) )
                     
                     weight2 = weight2_model(users_all, items_all,(train_dense[users_all,items_all]!=0)*1)
                     weight2 = torch.exp(torch.nn.ReLU()(weight2/args.auto_temperature))
-                    
+                
                 impu_all = torch.tanh(imputation_model((train_dense[users_all,items_all]).long()+1))
 
                 # loss of training set
